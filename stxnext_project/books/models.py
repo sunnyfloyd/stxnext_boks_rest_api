@@ -6,7 +6,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 class Book(models.Model):
     id = models.CharField(max_length=20, primary_key=True)
     title = models.CharField(max_length=120)
-    authors = ArrayField(models.CharField(max_length=120), default=list)
+    authors = ArrayField(models.CharField(max_length=120), blank=True, default=list)
     published_date = models.DateField()
     categories = ArrayField(models.CharField(max_length=120), blank=True, default=list)
     average_rating = models.FloatField(

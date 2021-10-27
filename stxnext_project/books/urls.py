@@ -8,5 +8,6 @@ router.register("", views.BookViewSet)
 app_name = "books"
 
 urlpatterns = [
-    path("", include(router.urls)),
+    path("db/", views.books_update),
+    path("books/", include(router.urls)),
 ]

@@ -1,29 +1,38 @@
 from books.models import Book
 from books.serializers import BookSerializer
 from rest_framework.exceptions import ValidationError
+import requests
 
 
-def upload_books_json_to_db(books_json):
+def upload_books_for_parameter_to_db(q):
     """
-    Given a JSON or a Python dict in a Google Books API format upload each item
-    to a database using BookSerializer linked to a Book model.
+    Request a list of books from Google Books API using a provided query parameter
+    and upload it to an internal database using BookSerializer linked to a Book model.
 
     If an item with a given ID already exists in a database, it will be updated
-    with a data from JSON.
+    with data from Google API response.
     """
+    response = requests.get(f"https://www.googleapis.com/books/v1/volumes?q={q}")
+    books_json = response.json()["items"]
+
     for book in books_json:
         # base fields
         book_data = {
             "id": book["id"],
             "title": book["volumeInfo"]["title"],
-            "authors": [author for author in book["volumeInfo"]["authors"]],
             "published_date": parse_incomplete_date(
                 book["volumeInfo"]["publishedDate"]
             ),
             "categories": book["volumeInfo"].get("categories", []),
-            "average_rating": book["volumeInfo"].get("averageRating", None),
-            "ratings_count": book["volumeInfo"].get("ratingsCount", None),
+            "average_rating": book["volumeInfo"].get("averageRating"),
+            "ratings_count": book["volumeInfo"].get("ratingsCount"),
         }
+
+        # authors
+        try:
+            book_data["authors"] = [author for author in book["volumeInfo"]["authors"]]
+        except KeyError:
+            book_data["authors"] = []
 
         # thumbnail
         try:
