@@ -1,0 +1,1 @@
+web gunicorn stxnext_project.wsgi:application --log-file -

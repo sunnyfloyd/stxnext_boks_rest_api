@@ -1,12 +1,12 @@
 from rest_framework import viewsets
 from rest_framework import status
-from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import Book
-from .serializers import BookSerializer
+from books.models import Book
+from books.serializers import BookSerializer
 from rest_framework import exceptions
 from django.core.exceptions import FieldError
-from .utils import upload_books_for_parameter_to_db
+from books.utils import upload_books_json_to_db
+from rest_framework.views import APIView
 import requests
 
 
@@ -46,23 +46,29 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
 
 
-@api_view(["POST"])
-def books_update(request):
+class BooksUpload(APIView):
     """
     Post-only endpoint that allows for uploading new books to a database from
-    Google Books API using query parameter.
+    Google Books API associated with provided 'q' value.
     """
 
-    q = request.data.get("q")
-    if q:
-        upload_books_for_parameter_to_db(q)
-        return Response(
-            {
-                "message": "Books database has been successfully updated based on the provided parameter."
-            },
-            status=status.HTTP_201_CREATED,
-        )
-    else:
-        raise exceptions.ParseError(
-            "Books database has been successfully updated based on the provided parameter."
-        )
+    def post(self, request, format=None):
+        q = request.data.get("q")
+
+        if q:
+            response = requests.get(
+                f"https://www.googleapis.com/books/v1/volumes?q={q}"
+            )
+            if response.status_code != 200:
+                exceptions.server_error(request)
+            upload_books_json_to_db(response.json()["items"])
+            return Response(
+                {
+                    "message": "Books database has been successfully updated based on the provided parameter."
+                },
+                status=status.HTTP_201_CREATED,
+            )
+        else:
+            raise exceptions.ParseError(
+                "'q' and its value (it cannot be an empty string) need to be provided in the request's body."
+            )

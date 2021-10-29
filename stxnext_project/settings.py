@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
+import django_heroku
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,7 +27,7 @@ SECRET_KEY = "django-insecure-5)rztl3n2myuu6c0*#ess*)o^xk8=2b9$73w04%=yuw^h8z56&
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -79,18 +81,15 @@ WSGI_APPLICATION = "stxnext_project.wsgi.application"
 
 # DATABASES = {
 #     "default": {
-#         "ENGINE": "django.db.backends.sqlite3",
-#         "NAME": BASE_DIR / "db.sqlite3",
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": "books",
+#         "USER": "postgres",
+#         "PASSWORD": "123",
 #     }
 # }
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "books",
-        "USER": "postgres",
-        "PASSWORD": "123",
-    }
+    "default": dj_database_url.config()
 }
 
 
@@ -147,3 +146,6 @@ REST_FRAMEWORK = {
 # CORS
 ALLOWED_HOSTS = ["*"]
 CORS_ORIGIN_ALLOW_ALL = True
+
+# Deployment
+django_heroku.settings(locals())
